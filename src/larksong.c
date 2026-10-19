@@ -113,6 +113,8 @@ static int g_ringGradual, g_ringRamp;
 /* ---------- theme ---------- */
 typedef struct {
     COLORREF bg, panel, text, muted, accent, face, hand, sec, ledOn, ledOff;
+    COLORREF skyTop, skyBottom; /* Larksong, Dawn and Dusk: a sky gradient behind the panel */
+    int sky;
 } Palette;
 
 static Palette P;
@@ -131,6 +133,21 @@ static void theme_apply(void) {
         P.bg = RGB(30, 25, 20); P.panel = RGB(43, 35, 27); P.text = RGB(242, 226, 196); P.muted = RGB(184, 166, 135);
         P.accent = RGB(242, 181, 68); P.face = RGB(242, 226, 196); P.hand = RGB(43, 35, 27); P.sec = RGB(179, 64, 42);
         break;
+    case TH_LARKSONG: /* the colors of the Larksong icon */
+        P.bg = RGB(30, 26, 74); P.panel = RGB(30, 26, 74); P.text = RGB(255, 244, 222); P.muted = RGB(203, 189, 219);
+        P.accent = RGB(255, 200, 87); P.face = RGB(255, 200, 87); P.hand = RGB(27, 22, 64); P.sec = RGB(138, 62, 102);
+        P.skyTop = RGB(30, 26, 74); P.skyBottom = RGB(110, 52, 104);
+        break;
+    case TH_DAWN:
+        P.bg = RGB(246, 230, 234); P.panel = RGB(217, 207, 242); P.text = RGB(59, 34, 64); P.muted = RGB(122, 95, 120);
+        P.accent = RGB(200, 80, 56); P.face = RGB(255, 255, 255); P.hand = RGB(59, 34, 64); P.sec = RGB(232, 115, 90);
+        P.skyTop = RGB(217, 207, 242); P.skyBottom = RGB(255, 228, 200);
+        break;
+    case TH_DUSK:
+        P.bg = RGB(11, 20, 48); P.panel = RGB(11, 20, 48); P.text = RGB(247, 232, 214); P.muted = RGB(196, 181, 198);
+        P.accent = RGB(242, 165, 65); P.face = RGB(26, 35, 72); P.hand = RGB(247, 232, 214); P.sec = RGB(242, 165, 65);
+        P.skyTop = RGB(11, 20, 48); P.skyBottom = RGB(181, 84, 58);
+        break;
     case TH_RADIO:
         P.bg = RGB(31, 26, 23); P.panel = RGB(10, 6, 6); P.text = RGB(233, 220, 196); P.muted = RGB(154, 143, 132);
         P.accent = RGB(255, 45, 79); P.face = RGB(10, 6, 6); P.hand = RGB(233, 220, 196); P.sec = RGB(255, 45, 79);
@@ -141,6 +158,7 @@ static void theme_apply(void) {
         P.hand = RGB(0, 0, 0); P.sec = RGB(200, 0, 0);
         break;
     }
+    P.sky = S.theme == TH_LARKSONG || S.theme == TH_DAWN || S.theme == TH_DUSK;
     P.ledOn = RGB(255, 45, 79);
     P.ledOff = RGB(43, 11, 18);
     if (g_bgBrush) DeleteObject(g_bgBrush);
@@ -201,6 +219,18 @@ static void fill_rect(HDC dc, int x, int y, int w, int h, COLORREF c) {
     DeleteObject(b);
 }
 
+/* A top-to-bottom gradient drawn in bands (Windows 95 has no gradient drawing of its own). */
+static void sky_rect(HDC dc, int w, int h, COLORREF top, COLORREF bottom) {
+    int y, band = 4;
+    for (y = 0; y < h; y += band) {
+        int k = h > 1 ? y * 256 / (h - 1) : 0;
+        int r = GetRValue(top) + (GetRValue(bottom) - GetRValue(top)) * k / 256;
+        int g = GetGValue(top) + (GetGValue(bottom) - GetGValue(top)) * k / 256;
+        int b = GetBValue(top) + (GetBValue(bottom) - GetBValue(top)) * k / 256;
+        fill_rect(dc, 0, y, w, band, RGB(r, g, b));
+    }
+}
+
 static void circle(HDC dc, int cx, int cy, int r, COLORREF fill, COLORREF edge, int edgeW) {
     HBRUSH b = CreateSolidBrush(fill);
     HPEN pen = CreatePen(PS_SOLID, edgeW, edge);
@@ -219,7 +249,7 @@ static void dial_pt(int cx, int cy, int idx, int r, int *x, int *y) {
 
 static void draw_analog(HDC dc, int cx, int cy, int r, int h, int m, int s) {
     int i, x1, y1, x2, y2;
-    COLORREF rim = S.theme == TH_RADIO ? RGB(58, 52, 48) : (S.theme == TH_CLASSIC ? RGB(128, 128, 128) : (S.theme == TH_RETRO ? RGB(200, 150, 62) : P.muted));
+    COLORREF rim = S.theme == TH_RADIO ? RGB(58, 52, 48) : (S.theme == TH_CLASSIC ? RGB(128, 128, 128) : (S.theme == TH_RETRO ? RGB(200, 150, 62) : (S.theme == TH_LARKSONG ? RGB(255, 122, 89) : (P.sky ? P.accent : P.muted))));
     circle(dc, cx, cy, r, P.face, rim, S.theme == TH_RADIO ? 6 : (S.theme == TH_RETRO ? 7 : 2));
     if (S.theme == TH_RADIO) circle(dc, cx, cy, r * 82 / 100, P.face, RGB(194, 86, 43), 1);
     for (i = 0; i < 60; i++) {
@@ -372,7 +402,8 @@ static void paint_panel(HWND hwnd, HDC dc) {
     int w, h;
     GetClientRect(hwnd, &rc);
     w = rc.right; h = rc.bottom;
-    fill_rect(dc, 0, 0, w, h, P.panel);
+    if (P.sky) sky_rect(dc, w, h, P.skyTop, P.skyBottom);
+    else fill_rect(dc, 0, 0, w, h, P.panel);
     if (S.theme == TH_RADIO) {
         int yy;
         /* woodgrain strip */
@@ -735,6 +766,9 @@ static void create_pages(void) {
     SendMessageA(c, CB_ADDSTRING, 0, (LPARAM)"Terminal (green on black)");
     SendMessageA(c, CB_ADDSTRING, 0, (LPARAM)"Clock radio");
     SendMessageA(c, CB_ADDSTRING, 0, (LPARAM)"Retro");
+    SendMessageA(c, CB_ADDSTRING, 0, (LPARAM)"Larksong");
+    SendMessageA(c, CB_ADDSTRING, 0, (LPARAM)"Dawn");
+    SendMessageA(c, CB_ADDSTRING, 0, (LPARAM)"Dusk");
     add_ctl(TAB_SETTINGS, "BUTTON", "Use 24-hour time", WS_TABSTOP | BS_AUTOCHECKBOX, 10, 88, 300, 20, ID_USE24);
     add_ctl(TAB_SETTINGS, "BUTTON", "Show seconds", WS_TABSTOP | BS_AUTOCHECKBOX, 10, 112, 300, 20, ID_SHOWSEC);
     add_ctl(TAB_SETTINGS, "BUTTON", "Start Larksong when Windows starts", WS_TABSTOP | BS_AUTOCHECKBOX, 10, 136, 360, 20, ID_AUTOSTART);
@@ -1850,6 +1884,8 @@ static LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             break;
         case ID_CHANGES:
             MessageBoxA(hwnd,
+                "2.2.0\n"
+                "  - New themes: Larksong, Dawn and Dusk\n\n"
                 "2.1.0\n"
                 "  - Credits and What's new, in Settings\n\n"
                 "2.0.1\n"

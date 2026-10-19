@@ -13,7 +13,7 @@ Download it from [Releases](https://github.com/adamglassner/larksong-classic/rel
 - Up before your alarm? Dismiss its next ring from the Alarms page or the tray icon
 - Bedtime reminder with an optional matching wake-up alarm
 - Stopwatch with laps, and a timer
-- Themes: Classic, Dark, Terminal, Clock radio (LED digits) and Retro (flip clock)
+- Themes: Classic, Dark, Terminal, Clock radio (LED digits) and Retro (flip clock), plus Larksong, Dawn and Dusk
 - Back up and restore alarms to a `.json` file that regular Larksong can also read
 - Runs in the notification area; can start with Windows
 - On Windows 7 and later: weather (Open-Meteo) and update checks

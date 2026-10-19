@@ -32,7 +32,7 @@
 #define MAX_LAPS   99
 
 /* Themes */
-enum { TH_CLASSIC, TH_DARK, TH_TERMINAL, TH_RADIO, TH_RETRO, TH_COUNT };
+enum { TH_CLASSIC, TH_DARK, TH_TERMINAL, TH_RADIO, TH_RETRO, TH_LARKSONG, TH_DAWN, TH_DUSK, TH_COUNT };
 
 typedef struct {
     int used;
