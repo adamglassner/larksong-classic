@@ -2,6 +2,7 @@
 #define LARKSONG_RESOURCE_H
 
 #define IDI_APP         1
+#define IDW_ALARM       2   /* the Larksong alarm sound (WAVE resource) */
 
 #define IDD_ALARM       100
 #define IDD_BEDTIME     101

@@ -4,6 +4,7 @@
 #include "version.h"
 
 IDI_APP ICON "larksong.ico"
+IDW_ALARM WAVE "alarm.wav"
 
 1 24 "larksong.manifest"
 

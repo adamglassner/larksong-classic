@@ -30,3 +30,7 @@ Download it from [Releases](https://github.com/adamglassner/larksong-classic/rel
 With the MinGW-w64 32-bit toolchain (`gcc-mingw-w64-i686`): `./build.sh` → `build/Larksong.exe`.
 
 Change the version in `VERSION`; every push to `main` builds and publishes a `classic-vX.Y.Z` release.
+
+## Credits
+
+Default alarm sound: "Alarm Clock" by freesound_community, from Pixabay (Pixabay Content License).

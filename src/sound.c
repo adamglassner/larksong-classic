@@ -1,4 +1,5 @@
 #include "core.h"
+#include "resource.h"
 
 /* A 2-second "beep beep beep beep" built in memory, so Larksong works without any sound files. */
 static const signed char SINE64[64] = {0,12,23,35,46,57,67,76,85,93,100,106,111,115,118,119,120,119,118,115,111,106,100,93,85,76,67,57,46,35,23,12,0,-12,-23,-35,-46,-57,-67,-76,-85,-93,-100,-106,-111,-115,-118,-119,-120,-119,-118,-115,-111,-106,-100,-93,-85,-76,-67,-57,-46,-35,-23,-12};
@@ -68,6 +69,10 @@ void sound_start(const char *wav) {
         ok = PlaySoundA(wav, NULL, SND_FILENAME | SND_ASYNC | SND_LOOP | SND_NODEFAULT);
     }
     if (!ok) {
+        /* Larksong's own alarm sound, built into the program. */
+        ok = PlaySoundA(MAKEINTRESOURCEA(IDW_ALARM), g_inst, SND_RESOURCE | SND_ASYNC | SND_LOOP | SND_NODEFAULT);
+    }
+    if (!ok) {
         tone_build();
         if (g_tone) PlaySoundA((LPCSTR)g_tone, NULL, SND_MEMORY | SND_ASYNC | SND_LOOP);
         else MessageBeep(MB_ICONEXCLAMATION);
@@ -82,6 +87,7 @@ void sound_stop(void) {
 /* Plays a sound once (for "Test"), at full volume. */
 void sound_test(const char *wav) {
     if (wav && file_exists(wav) && PlaySoundA(wav, NULL, SND_FILENAME | SND_ASYNC | SND_NODEFAULT)) return;
+    if (PlaySoundA(MAKEINTRESOURCEA(IDW_ALARM), g_inst, SND_RESOURCE | SND_ASYNC | SND_NODEFAULT)) return;
     tone_build();
     if (g_tone) PlaySoundA((LPCSTR)g_tone, NULL, SND_MEMORY | SND_ASYNC);
 }

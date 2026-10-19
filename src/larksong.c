@@ -602,7 +602,7 @@ static void laps_refresh(void) {
 
 static void sound_label(char *out, const char *path) {
     int i, start = 0;
-    if (!path[0]) { str_copy(out, "Built-in alarm tone", 64); return; }
+    if (!path[0]) { str_copy(out, "Larksong alarm (built in)", 64); return; }
     for (i = 0; path[i]; i++) if (path[i] == '\\') start = i + 1;
     str_copy(out, path + start, 64);
 }
@@ -1009,7 +1009,7 @@ static BOOL CALLBACK AlarmDlg(HWND dlg, UINT msg, WPARAM wp, LPARAM lp) {
             return TRUE;
         case IDC_DEFSOUND:
             g_edit.sound[0] = 0;
-            SetDlgItemTextA(dlg, IDC_SOUNDNAME, "Built-in alarm tone");
+            SetDlgItemTextA(dlg, IDC_SOUNDNAME, "Larksong alarm (built in)");
             return TRUE;
         case IDC_TEST:
             sound_test(g_edit.sound);
