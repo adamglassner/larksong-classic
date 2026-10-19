@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
-  <assemblyIdentity type="win32" name="AdamGlassner.Daybreak.Classic" version="1.0.0.0" processorArchitecture="x86"/>
-  <description>Daybreak Classic</description>
+  <assemblyIdentity type="win32" name="AdamGlassner.Larksong.Classic" version="1.0.0.0" processorArchitecture="x86"/>
+  <description>Larksong Classic</description>
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
     <security>
       <requestedPrivileges>

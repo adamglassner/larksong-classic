@@ -3,9 +3,9 @@
 #include "resource.h"
 #include "version.h"
 
-IDI_APP ICON "daybreak.ico"
+IDI_APP ICON "larksong.ico"
 
-1 24 "daybreak.manifest"
+1 24 "larksong.manifest"
 
 1 VERSIONINFO
 FILEVERSION     VER_MAJOR,VER_MINOR,VER_PATCH,0
@@ -18,12 +18,12 @@ BEGIN
     BLOCK "040904E4"
     BEGIN
       VALUE "CompanyName",      "Adam Glassner"
-      VALUE "FileDescription",  "Daybreak Classic alarm clock"
+      VALUE "FileDescription",  "Larksong Classic alarm clock"
       VALUE "FileVersion",      VER_STRING
-      VALUE "InternalName",     "daybreak"
+      VALUE "InternalName",     "larksong"
       VALUE "LegalCopyright",   "(c) 2026 Adam Glassner"
-      VALUE "OriginalFilename", "Daybreak.exe"
-      VALUE "ProductName",      "Daybreak Classic"
+      VALUE "OriginalFilename", "Larksong.exe"
+      VALUE "ProductName",      "Larksong Classic"
       VALUE "ProductVersion",   VER_STRING
     END
   END

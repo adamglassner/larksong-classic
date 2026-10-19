@@ -58,7 +58,7 @@ int net_get(const char *host, const char *path, char *out, int max) {
     if (!net_available()) return -1;
     widen(host, whost, 128);
     widen(path, wpath, 512);
-    s = pOpen(L"Daybreak-Classic/" VER_STRING, 0 /* default proxy */, NULL, NULL, 0);
+    s = pOpen(L"Larksong-Classic/" VER_STRING, 0 /* default proxy */, NULL, NULL, 0);
     if (!s) goto done;
     if (pSetOption) {
         DWORD protos = 0x00000800 | 0x00000200 | 0x00000080; /* TLS 1.2, 1.1, 1.0 */

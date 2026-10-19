@@ -298,15 +298,18 @@ int autostart_get(void) {
     return ok;
 }
 
-/* ---------- storage: an INI file in %APPDATA%\Daybreak Classic (or next to the program) ---------- */
+/* ---------- storage: an INI file in %APPDATA%\Larksong Classic (or next to the program) ---------- */
 
 static char g_ini[MAX_PATH];
 
 void store_init(void) {
-    char dir[MAX_PATH];
+    char dir[MAX_PATH], old[MAX_PATH];
     DWORD n = GetEnvironmentVariableA("APPDATA", dir, MAX_PATH);
+    old[0] = 0;
     if (n > 0 && n < MAX_PATH - 40) {
-        str_cat(dir, "\\Daybreak Classic", MAX_PATH);
+        str_copy(old, dir, MAX_PATH);
+        str_cat(old, "\\Daybreak Classic\\daybreak.ini", MAX_PATH);
+        str_cat(dir, "\\Larksong Classic", MAX_PATH);
         CreateDirectoryA(dir, NULL);
     } else {
         /* Windows 95/98 without user profiles: keep settings beside the program. */
@@ -314,9 +317,13 @@ void store_init(void) {
         GetModuleFileNameA(NULL, dir, MAX_PATH);
         for (i = str_len(dir) - 1; i > 0 && dir[i] != '\\'; i--) {}
         dir[i] = 0;
+        str_copy(old, dir, MAX_PATH);
+        str_cat(old, "\\daybreak.ini", MAX_PATH);
     }
     str_copy(g_ini, dir, MAX_PATH);
-    str_cat(g_ini, "\\daybreak.ini", MAX_PATH);
+    str_cat(g_ini, "\\larksong.ini", MAX_PATH);
+    /* Larksong Classic used to be called Daybreak Classic: bring its alarms and settings over once. */
+    if (!file_exists(g_ini) && old[0] && file_exists(old)) CopyFileA(old, g_ini, TRUE);
 }
 
 static int ini_int(const char *sec, const char *key, int def) {

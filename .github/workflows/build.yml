@@ -1,4 +1,4 @@
-name: Build Daybreak Classic
+name: Build Larksong Classic
 
 on:
   push:
@@ -26,17 +26,17 @@ jobs:
 
       - name: Check what Windows functions it uses
         run: |
-          i686-w64-mingw32-objdump -p build/Daybreak.exe | grep -E "DLL Name|^\s+[0-9a-f]+\s+[0-9]+\s+\w" > build/imports.txt || true
-          i686-w64-mingw32-objdump -p build/Daybreak.exe | grep -E "MajorOSystemVersion|MinorOSystemVersion|MajorSubsystemVersion|MinorSubsystemVersion|Subsystem" >> build/imports.txt
+          i686-w64-mingw32-objdump -p build/Larksong.exe | grep -E "DLL Name|^\s+[0-9a-f]+\s+[0-9]+\s+\w" > build/imports.txt || true
+          i686-w64-mingw32-objdump -p build/Larksong.exe | grep -E "MajorOSystemVersion|MinorOSystemVersion|MajorSubsystemVersion|MinorSubsystemVersion|Subsystem" >> build/imports.txt
           cat build/imports.txt
 
       - name: Package
         run: |
           mkdir -p out/pkg
-          cp build/Daybreak.exe "out/Daybreak-Classic-$V.exe"
-          cp build/Daybreak.exe out/pkg/Daybreak.exe
+          cp build/Larksong.exe "out/Larksong-Classic-$V.exe"
+          cp build/Larksong.exe out/pkg/Larksong.exe
           cp README.txt out/pkg/README.txt
-          (cd out/pkg && zip -q "../Daybreak-Classic-$V.zip" Daybreak.exe README.txt)
+          (cd out/pkg && zip -q "../Larksong-Classic-$V.zip" Larksong.exe README.txt)
           ls -la out
 
       - name: Publish release
@@ -44,17 +44,17 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete "classic-v$V" --yes --cleanup-tag || true
-          gh release create "classic-v$V" "out/Daybreak-Classic-$V.exe" "out/Daybreak-Classic-$V.zip" \
-            --title "Daybreak Classic $V" \
-            --notes "For Windows 95, 98, Me, 2000, XP, Vista, 7, 8, 8.1, 10 and 11. No installer needed: copy Daybreak.exe anywhere and run it. Built from ${GITHUB_SHA::7}."
+          gh release create "classic-v$V" "out/Larksong-Classic-$V.exe" "out/Larksong-Classic-$V.zip" \
+            --title "Larksong Classic $V" \
+            --notes "For Windows 95, 98, Me, 2000, XP, Vista, 7, 8, 8.1, 10 and 11. No installer needed: copy Larksong.exe anywhere and run it. Built from ${GITHUB_SHA::7}."
 
       - name: Save to builds branch
         run: |
-          mkdir keep && cp build/Daybreak.exe build/imports.txt keep/ && cd keep
+          mkdir keep && cp build/Larksong.exe build/imports.txt keep/ && cd keep
           git init -q -b builds
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
-          git add . && git commit -q -m "Daybreak Classic $V from ${GITHUB_SHA::7}"
+          git add . && git commit -q -m "Larksong Classic $V from ${GITHUB_SHA::7}"
           git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" builds
 
       - name: Save failure log

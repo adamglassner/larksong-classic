@@ -1,6 +1,6 @@
 #include "core.h"
 
-/* A 2-second "beep beep beep beep" built in memory, so Daybreak works without any sound files. */
+/* A 2-second "beep beep beep beep" built in memory, so Larksong works without any sound files. */
 static const signed char SINE64[64] = {0,12,23,35,46,57,67,76,85,93,100,106,111,115,118,119,120,119,118,115,111,106,100,93,85,76,67,57,46,35,23,12,0,-12,-23,-35,-46,-57,-67,-76,-85,-93,-100,-106,-111,-115,-118,-119,-120,-119,-118,-115,-111,-106,-100,-93,-85,-76,-67,-57,-46,-35,-23,-12};
 
 #define TONE_RATE 22050

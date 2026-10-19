@@ -67,10 +67,10 @@ enum { TAB_CLOCK, TAB_ALARMS, TAB_STOP, TAB_TIMER, TAB_SETTINGS, TAB_COUNT };
 #define ID_TRAY_EXIT   502
 #define ID_TRAY_SKIP   503
 
-static const char MAIN_CLASS[] = "DaybreakClassicMain";
-static const char PANEL_CLASS[] = "DaybreakClassicPanel";
-static const char RING_CLASS[] = "DaybreakClassicRing";
-static const char RELEASES_URL[] = "https://github.com/adamglassner/daybreak-classic/releases";
+static const char MAIN_CLASS[] = "LarksongClassicMain";
+static const char PANEL_CLASS[] = "LarksongClassicPanel";
+static const char RING_CLASS[] = "LarksongClassicRing";
+static const char RELEASES_URL[] = "https://github.com/adamglassner/larksong-classic/releases";
 
 static HWND g_main, g_panel, g_ring;
 static int g_tab;
@@ -620,7 +620,7 @@ static void settings_refresh(void) {
         EnableWindow(ctl(ID_CITY), FALSE);
         EnableWindow(ctl(ID_CITYSET), FALSE);
         EnableWindow(ctl(ID_UPDCHECK), FALSE);
-        SetWindowTextA(ctl(ID_UPDSTATUS), "To update, download the newest Daybreak Classic on another computer.");
+        SetWindowTextA(ctl(ID_UPDSTATUS), "To update, download the newest Larksong Classic on another computer.");
     } else if (S.haveLoc) {
         wsprintfA(buf, "Weather for %s.", S.city);
         SetWindowTextA(ctl(ID_WSTATUS), buf);
@@ -629,7 +629,7 @@ static void settings_refresh(void) {
     }
     if (g_updText[0]) SetWindowTextA(ctl(ID_UPDSTATUS), g_updText);
     os_name(os);
-    wsprintfA(buf, "Daybreak Classic %s, running on %s.\r\nSettings are saved in daybreak.ini. Alarms ring while Daybreak is running (it waits in the notification area when closed).", VER_STRING, os);
+    wsprintfA(buf, "Larksong Classic %s, running on %s.\r\nSettings are saved in larksong.ini. Alarms ring while Larksong is running (it waits in the notification area when closed).", VER_STRING, os);
     SetWindowTextA(ctl(ID_ABOUT), buf);
     SetWindowTextA(ctl(ID_TSOUND), "");
     sound_label(buf, S.timerSound);
@@ -735,7 +735,7 @@ static void create_pages(void) {
     SendMessageA(c, CB_ADDSTRING, 0, (LPARAM)"Retro");
     add_ctl(TAB_SETTINGS, "BUTTON", "Use 24-hour time", WS_TABSTOP | BS_AUTOCHECKBOX, 10, 88, 300, 20, ID_USE24);
     add_ctl(TAB_SETTINGS, "BUTTON", "Show seconds", WS_TABSTOP | BS_AUTOCHECKBOX, 10, 112, 300, 20, ID_SHOWSEC);
-    add_ctl(TAB_SETTINGS, "BUTTON", "Start Daybreak when Windows starts", WS_TABSTOP | BS_AUTOCHECKBOX, 10, 136, 360, 20, ID_AUTOSTART);
+    add_ctl(TAB_SETTINGS, "BUTTON", "Start Larksong when Windows starts", WS_TABSTOP | BS_AUTOCHECKBOX, 10, 136, 360, 20, ID_AUTOSTART);
     add_ctl(TAB_SETTINGS, "BUTTON", "Show temperatures in Celsius", WS_TABSTOP | BS_AUTOCHECKBOX, 10, 160, 360, 20, ID_CELSIUS);
     add_ctl(TAB_SETTINGS, "STATIC", "Weather city:", SS_LEFT, 10, 202, 100, 18, -1);
     add_ctl(TAB_SETTINGS, "EDIT", "", WS_TABSTOP | WS_BORDER | ES_AUTOHSCROLL, 120, 198, 250, 22, ID_CITY);
@@ -1278,7 +1278,7 @@ static DWORD WINAPI UpdateThread(LPVOID arg) {
     int quiet = (int)(INT_PTR)arg;
     char best[24];
     best[0] = 0;
-    if (net_get("api.github.com", "/repos/adamglassner/daybreak-classic/releases?per_page=30", g_upd, sizeof(g_upd)) <= 0) {
+    if (net_get("api.github.com", "/repos/adamglassner/larksong-classic/releases?per_page=30", g_upd, sizeof(g_upd)) <= 0) {
         if (!quiet) str_copy(g_updText, "Couldn't check for updates. Check your internet connection.", sizeof(g_updText));
         PostMessageA(g_main, WM_UPDATE, (WPARAM)quiet, 0);
         return 0;
@@ -1296,7 +1296,7 @@ static DWORD WINAPI UpdateThread(LPVOID arg) {
     }
     if (best[0] && version_compare(best, VER_STRING) > 0) {
         str_copy(g_updVersion, best, sizeof(g_updVersion));
-        wsprintfA(g_updText, "Daybreak Classic %s is available. Click \"Download page\" to get it.", best);
+        wsprintfA(g_updText, "Larksong Classic %s is available. Click \"Download page\" to get it.", best);
     } else {
         g_updVersion[0] = 0;
         wsprintfA(g_updText, "You have the latest version (%s).", VER_STRING);
@@ -1315,7 +1315,7 @@ static void update_check(int quiet) {
 }
 
 /* ---------- backup & restore ----------
- * A small JSON file shared with the regular Daybreak apps (Android, Windows 10/11, Linux),
+ * A small JSON file shared with the regular Larksong apps (Android, Windows 10/11, Linux),
  * so alarms can move between an old PC and a phone.
  */
 
@@ -1343,7 +1343,7 @@ static void out_json_str(Out *o, const char *s) {
 }
 
 static void out_days(Out *o, int bits) {
-    /* Regular Daybreak numbers days 1 = Monday ... 7 = Sunday. */
+    /* Regular Larksong numbers days 1 = Monday ... 7 = Sunday. */
     int i, first = 1;
     char n[8];
     out_add(o, "[");
@@ -1362,7 +1362,7 @@ static int pick_file(HWND owner, char *path, int save) {
     memset(&ofn, 0, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
     ofn.hwndOwner = owner;
-    ofn.lpstrFilter = "Daybreak backup (*.json)\0*.json\0All files (*.*)\0*.*\0";
+    ofn.lpstrFilter = "Larksong backup (*.json)\0*.json\0All files (*.*)\0*.*\0";
     ofn.lpstrFile = path;
     ofn.nMaxFile = MAX_PATH;
     ofn.lpstrDefExt = "json";
@@ -1384,13 +1384,13 @@ static void backup_save(HWND owner) {
     HANDLE f;
     DWORD written;
     GetLocalTime(&t);
-    wsprintfA(path, "daybreak-alarms-%04d-%02d-%02d.json", t.wYear, t.wMonth, t.wDay);
+    wsprintfA(path, "larksong-alarms-%04d-%02d-%02d.json", t.wYear, t.wMonth, t.wDay);
     if (!pick_file(owner, path, 1)) return;
     o.cap = 65536;
     o.len = 0;
     o.buf = (char *)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, (SIZE_T)o.cap);
     if (!o.buf) return;
-    out_add(&o, "{\r\n  \"format\": \"daybreak-backup\",\r\n  \"version\": 1,\r\n  \"app\": \"Daybreak Classic " VER_STRING "\",\r\n  \"alarms\": [");
+    out_add(&o, "{\r\n  \"format\": \"larksong-backup\",\r\n  \"version\": 1,\r\n  \"app\": \"Larksong Classic " VER_STRING "\",\r\n  \"alarms\": [");
     for (i = 0; i < MAX_ALARMS; i++) {
         Alarm *a = &A[i];
         if (!a->used) continue;
@@ -1423,7 +1423,7 @@ static void backup_save(HWND owner) {
         MessageBoxA(owner, "The backup couldn't be saved there. Try another folder.", APP_NAME, MB_OK | MB_ICONEXCLAMATION);
     } else {
         CloseHandle(f);
-        MessageBoxA(owner, "Your alarms were backed up.\n\nYou can restore this file in Daybreak Classic, or in Daybreak on your phone or a newer PC.", APP_NAME, MB_OK | MB_ICONINFORMATION);
+        MessageBoxA(owner, "Your alarms were backed up.\n\nYou can restore this file in Larksong Classic, or in Larksong on your phone or a newer PC.", APP_NAME, MB_OK | MB_ICONINFORMATION);
     }
     HeapFree(GetProcessHeap(), 0, o.buf);
 }
@@ -1497,7 +1497,7 @@ static void backup_restore(HWND owner) {
     f = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (f == INVALID_HANDLE_VALUE) { MessageBoxA(owner, "That file couldn't be opened.", APP_NAME, MB_OK | MB_ICONEXCLAMATION); return; }
     size = GetFileSize(f, NULL);
-    if (size == (DWORD)-1 || size > 512 * 1024) { CloseHandle(f); MessageBoxA(owner, "That doesn't look like a Daybreak backup.", APP_NAME, MB_OK | MB_ICONEXCLAMATION); return; }
+    if (size == (DWORD)-1 || size > 512 * 1024) { CloseHandle(f); MessageBoxA(owner, "That doesn't look like a Larksong backup.", APP_NAME, MB_OK | MB_ICONEXCLAMATION); return; }
     buf = (char *)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, size + 1);
     if (!buf) { CloseHandle(f); return; }
     ReadFile(f, buf, size, &got, NULL);
@@ -1506,7 +1506,7 @@ static void backup_restore(HWND owner) {
 
     p = (char *)json_val(buf, "alarms");
     if (!p || *p != '[') {
-        MessageBoxA(owner, "That doesn't look like a Daybreak backup.", APP_NAME, MB_OK | MB_ICONEXCLAMATION);
+        MessageBoxA(owner, "That doesn't look like a Larksong backup.", APP_NAME, MB_OK | MB_ICONEXCLAMATION);
         HeapFree(GetProcessHeap(), 0, buf);
         return;
     }
@@ -1588,7 +1588,7 @@ static void tray_add(void) {
 static void tray_menu(void) {
     POINT pt;
     HMENU m = CreatePopupMenu();
-    AppendMenuA(m, MF_STRING, ID_TRAY_OPEN, "&Open Daybreak");
+    AppendMenuA(m, MF_STRING, ID_TRAY_OPEN, "&Open Larksong");
     AppendMenuA(m, MF_STRING, ID_TRAY_NEW, "&New alarm...");
     {
         int i = soonest_alarm();
@@ -1865,7 +1865,7 @@ static LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         if (!S.trayHint) {
             S.trayHint = 1;
             store_save();
-            MessageBoxA(NULL, "Daybreak is still running in the notification area (next to the clock) so your alarms will ring.\n\nTo quit, right-click its icon and choose Exit.",
+            MessageBoxA(NULL, "Larksong is still running in the notification area (next to the clock) so your alarms will ring.\n\nTo quit, right-click its icon and choose Exit.",
                         APP_NAME, MB_OK | MB_ICONINFORMATION);
         }
         return 0;
@@ -1889,7 +1889,7 @@ static int run(HINSTANCE inst, const char *cmd, int show) {
     int startHidden = str_find(cmd, "/tray") != 0;
 
     g_inst = inst;
-    mutex = CreateMutexA(NULL, FALSE, "DaybreakClassicSingleInstance");
+    mutex = CreateMutexA(NULL, FALSE, "LarksongClassicSingleInstance");
     if (mutex && GetLastError() == ERROR_ALREADY_EXISTS) {
         HWND other = FindWindowA(MAIN_CLASS, NULL);
         if (other) {

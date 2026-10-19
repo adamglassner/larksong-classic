@@ -1,5 +1,5 @@
-#ifndef DAYBREAK_RESOURCE_H
-#define DAYBREAK_RESOURCE_H
+#ifndef LARKSONG_RESOURCE_H
+#define LARKSONG_RESOURCE_H
 
 #define IDI_APP         1
 
