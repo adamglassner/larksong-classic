@@ -44,6 +44,7 @@ typedef struct {
     int ramp;          /* seconds */
     char label[48];
     char sound[MAX_PATH]; /* WAV file, or empty for the built-in tone */
+    int skipUntil;     /* local minute stamp of a ring dismissed ahead of time; 0 = none */
 } Alarm;
 
 typedef struct {

@@ -29,6 +29,8 @@ enum { TAB_CLOCK, TAB_ALARMS, TAB_STOP, TAB_TIMER, TAB_SETTINGS, TAB_COUNT };
 #define ID_ADEL        313
 #define ID_ATOGGLE     314
 #define ID_ABED        315
+#define ID_ASKIP       316
+#define ID_ANEXT       317
 #define ID_SWSTART     320
 #define ID_SWLAP       321
 #define ID_SWRESET     322
@@ -63,6 +65,7 @@ enum { TAB_CLOCK, TAB_ALARMS, TAB_STOP, TAB_TIMER, TAB_SETTINGS, TAB_COUNT };
 #define ID_TRAY_OPEN   500
 #define ID_TRAY_NEW    501
 #define ID_TRAY_EXIT   502
+#define ID_TRAY_SKIP   503
 
 static const char MAIN_CLASS[] = "DaybreakClassicMain";
 static const char PANEL_CLASS[] = "DaybreakClassicPanel";
@@ -321,21 +324,41 @@ static const char *weather_text(int code) {
     return "";
 }
 
-static int next_alarm_minutes(void) {
-    int i, best = -1, now = local_stamp();
+/* The local minute stamp when alarm i next rings, leaving out a ring dismissed early; -1 if none. */
+static int alarm_next_stamp(int i) {
+    int d, now = local_stamp();
+    if (!A[i].used || !A[i].enabled) return -1;
+    for (d = 0; d < 16; d++) {
+        int day = now / 1440 + d;
+        int t = day * 1440 + A[i].hour * 60 + A[i].minute;
+        if (t <= now || t <= A[i].skipUntil) continue;
+        if (A[i].days && !(A[i].days & (1 << weekday_from_days(day)))) continue;
+        return t;
+    }
+    return -1;
+}
+
+/* The alarm that rings next, or -1. */
+static int soonest_alarm(void) {
+    int i, best = -1, bestT = 0;
     for (i = 0; i < MAX_ALARMS; i++) {
-        int d;
-        if (!A[i].used || !A[i].enabled) continue;
-        for (d = 0; d < 8; d++) {
-            int day = now / 1440 + d;
-            int t = day * 1440 + A[i].hour * 60 + A[i].minute;
-            if (t <= now) continue;
-            if (A[i].days && !(A[i].days & (1 << weekday_from_days(day)))) continue;
-            if (best < 0 || t - now < best) best = t - now;
-            break;
-        }
+        int t = alarm_next_stamp(i);
+        if (t >= 0 && (best < 0 || t < bestT)) { best = i; bestT = t; }
     }
     return best;
+}
+
+static int next_alarm_minutes(void) {
+    int i = soonest_alarm();
+    return i < 0 ? -1 : alarm_next_stamp(i) - local_stamp();
+}
+
+/* "Tue 6:00 AM" for a local minute stamp. */
+static void stamp_text(char *out, int stamp) {
+    static const char *DN[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+    char t[16];
+    format_time(t, (stamp % 1440) / 60, stamp % 60, S.use24);
+    wsprintfA(out, "%s %s", DN[weekday_from_days(stamp / 1440)], t);
 }
 
 /* ---------- panel painting ---------- */
@@ -511,6 +534,28 @@ static HWND add_ctl(int tab, const char *cls, const char *text, DWORD style, int
 
 static HWND ctl(int id) { return GetDlgItem(g_main, id); }
 
+/* The line under the alarm list: when the next alarm rings, and any ring dismissed early. */
+static void alarms_next_text(void) {
+    char text[160], a[32], b[32];
+    int i, now = local_stamp(), skipped = -1;
+    for (i = 0; i < MAX_ALARMS; i++) {
+        if (A[i].used && A[i].enabled && A[i].skipUntil > now && (skipped < 0 || A[i].skipUntil < A[skipped].skipUntil)) skipped = i;
+    }
+    i = soonest_alarm();
+    if (i < 0) str_copy(text, "No alarms on.", sizeof(text));
+    else {
+        stamp_text(a, alarm_next_stamp(i));
+        wsprintfA(text, "Next alarm: %s%s%s", a, A[i].label[0] ? " - " : "", A[i].label);
+    }
+    if (skipped >= 0) {
+        stamp_text(b, A[skipped].skipUntil);
+        str_cat(text, "   (dismissed ", sizeof(text));
+        str_cat(text, b, sizeof(text));
+        str_cat(text, ")", sizeof(text));
+    }
+    SetWindowTextA(ctl(ID_ANEXT), text);
+}
+
 static void alarms_refresh(void) {
     HWND lb = ctl(ID_ALIST);
     int i, sel = (int)SendMessageA(lb, LB_GETCURSEL, 0, 0);
@@ -521,11 +566,13 @@ static void alarms_refresh(void) {
         if (!A[i].used) continue;
         format_time(t, A[i].hour, A[i].minute, S.use24);
         days_text(d, A[i].days);
-        wsprintfA(line, "%s\t%s\t%s\t%s", t, A[i].enabled ? "On" : "Off", d, A[i].label[0] ? A[i].label : "Alarm");
+        wsprintfA(line, "%s\t%s\t%s\t%s", t, !A[i].enabled ? "Off" : A[i].skipUntil > local_stamp() ? "Skip" : "On", d,
+                  A[i].label[0] ? A[i].label : "Alarm");
         idx = (int)SendMessageA(lb, LB_ADDSTRING, 0, (LPARAM)line);
         SendMessageA(lb, LB_SETITEMDATA, (WPARAM)idx, (LPARAM)i);
     }
     if (sel >= 0) SendMessageA(lb, LB_SETCURSEL, (WPARAM)sel, 0);
+    alarms_next_text();
     InvalidateRect(g_panel, NULL, FALSE);
 }
 
@@ -632,7 +679,9 @@ static void create_pages(void) {
     add_ctl(TAB_CLOCK, "BUTTON", "Refresh weather", WS_TABSTOP | BS_PUSHBUTTON, 160, 376, 140, 28, ID_WREFRESH);
 
     /* Alarms */
-    c = add_ctl(TAB_ALARMS, "LISTBOX", "", WS_TABSTOP | WS_BORDER | WS_VSCROLL | LBS_NOTIFY | LBS_USETABSTOPS | LBS_NOINTEGRALHEIGHT, 10, 118, 460, 346, ID_ALIST);
+    c = add_ctl(TAB_ALARMS, "LISTBOX", "", WS_TABSTOP | WS_BORDER | WS_VSCROLL | LBS_NOTIFY | LBS_USETABSTOPS | LBS_NOINTEGRALHEIGHT, 10, 118, 460, 312, ID_ALIST);
+    add_ctl(TAB_ALARMS, "BUTTON", "Dis&miss next ring...", WS_TABSTOP | BS_PUSHBUTTON, 10, 438, 150, 28, ID_ASKIP);
+    add_ctl(TAB_ALARMS, "STATIC", "", SS_LEFT | SS_NOPREFIX | SS_CENTERIMAGE, 170, 438, 300, 28, ID_ANEXT);
     {
         int stops[3] = {48, 76, 160};
         SendMessageA(c, LB_SETTABSTOPS, 3, (LPARAM)stops);
@@ -710,6 +759,7 @@ static void check_minute(int stamp) {
         Alarm *a = &A[i];
         if (!a->used || !a->enabled) continue;
         if (a->hour * 60 + a->minute != mod) continue;
+        if (stamp <= a->skipUntil) continue; /* dismissed ahead of time */
         if (a->days && !(a->days & (1 << dow))) continue;
         if (!a->days) { a->enabled = 0; store_save(); }
         ring_open(0, i);
@@ -739,6 +789,7 @@ static void tick(void) {
         if (now < g_lastStamp || now - g_lastStamp > 30) s = now; /* clock changed, or PC slept a long time */
         g_lastStamp = now;
         for (; s <= now; s++) check_minute(s);
+        alarms_next_text();
     }
     if (g_tmRunning && GetTickCount() >= g_tmEnd) {
         g_tmRunning = 0;
@@ -991,6 +1042,44 @@ static BOOL CALLBACK AlarmDlg(HWND dlg, UINT msg, WPARAM wp, LPARAM lp) {
     return FALSE;
 }
 
+/*
+ * Dismisses an alarm's next ring ahead of time, for when you're up before it.
+ * With no alarm selected, it's the one that rings next. A one-time alarm is turned off;
+ * a repeating one rings again on its next day. If the ring is already dismissed, offers to undo.
+ */
+static void alarm_dismiss(int i, int fromTray) {
+    char msg[256], a1[32], a2[32];
+    int t, keep, now = local_stamp();
+    UINT box = MB_YESNO | MB_ICONQUESTION | (fromTray ? MB_SETFOREGROUND : 0);
+    if (i < 0) i = soonest_alarm();
+    if (i < 0 || !A[i].used || !A[i].enabled) {
+        MessageBoxA(g_main, "There's no alarm on to dismiss.", APP_NAME, MB_OK | MB_ICONINFORMATION | (fromTray ? MB_SETFOREGROUND : 0));
+        return;
+    }
+    if (A[i].skipUntil > now) {
+        stamp_text(a1, A[i].skipUntil);
+        wsprintfA(msg, "The %s alarm is already dismissed.\n\nRing at %s after all?", a1, a1);
+        if (MessageBoxA(g_main, msg, APP_NAME, box) == IDYES) { A[i].skipUntil = 0; store_save(); alarms_refresh(); }
+        return;
+    }
+    t = alarm_next_stamp(i);
+    if (t < 0) return;
+    stamp_text(a1, t);
+    if (A[i].days) {
+        keep = A[i].skipUntil;
+        A[i].skipUntil = t;
+        stamp_text(a2, alarm_next_stamp(i));
+        A[i].skipUntil = keep;
+        wsprintfA(msg, "Up already? Dismiss the %s alarm?\n\nIt will ring again %s.", a1, a2);
+    } else {
+        wsprintfA(msg, "Up already? Dismiss the %s alarm?\n\nIt only rings once, so it will be turned off.", a1);
+    }
+    if (MessageBoxA(g_main, msg, APP_NAME, box) != IDYES) return;
+    if (A[i].days) A[i].skipUntil = t; else A[i].enabled = 0;
+    store_save();
+    alarms_refresh();
+}
+
 static void alarm_edit(int index) {
     int slot = index;
     if (index < 0) {
@@ -1004,6 +1093,7 @@ static void alarm_edit(int index) {
     g_editIndex = index;
     if (DialogBoxParamA(g_inst, MAKEINTRESOURCEA(IDD_ALARM), g_main, (DLGPROC)AlarmDlg, 0) == IDOK) {
         g_edit.used = 1;
+        g_edit.skipUntil = 0; /* editing clears an early dismissal */
         A[slot] = g_edit;
         g_snoozeAt[slot] = 0;
         store_save();
@@ -1500,6 +1590,15 @@ static void tray_menu(void) {
     HMENU m = CreatePopupMenu();
     AppendMenuA(m, MF_STRING, ID_TRAY_OPEN, "&Open Daybreak");
     AppendMenuA(m, MF_STRING, ID_TRAY_NEW, "&New alarm...");
+    {
+        int i = soonest_alarm();
+        if (i >= 0 && alarm_next_stamp(i) - local_stamp() < 1440) {
+            char item[64], when[32];
+            stamp_text(when, alarm_next_stamp(i));
+            wsprintfA(item, "&Dismiss next alarm (%s)...", when);
+            AppendMenuA(m, MF_STRING, ID_TRAY_SKIP, item);
+        }
+    }
     AppendMenuA(m, MF_SEPARATOR, 0, NULL);
     AppendMenuA(m, MF_STRING, ID_TRAY_EXIT, "E&xit");
     SetMenuDefaultItem(m, ID_TRAY_OPEN, FALSE);
@@ -1632,9 +1731,15 @@ static LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         }
         case ID_ATOGGLE: {
             int i = alarms_selected();
-            if (i >= 0) { A[i].enabled = !A[i].enabled; g_snoozeAt[i] = 0; store_save(); alarms_refresh(); }
+            if (i >= 0) { A[i].enabled = !A[i].enabled; A[i].skipUntil = 0; g_snoozeAt[i] = 0; store_save(); alarms_refresh(); }
             break;
         }
+        case ID_ASKIP:
+            alarm_dismiss(alarms_selected(), 0);
+            break;
+        case ID_TRAY_SKIP:
+            alarm_dismiss(soonest_alarm(), 1);
+            break;
         case ID_ABED:
             if (DialogBoxParamA(g_inst, MAKEINTRESOURCEA(IDD_BEDTIME), hwnd, (DLGPROC)BedDlg, 0) == IDOK) alarms_refresh();
             break;

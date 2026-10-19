@@ -388,6 +388,7 @@ void store_load(void) {
         a->snooze = ini_int(sec, "snooze", 10);
         a->gradual = ini_int(sec, "gradual", 1);
         a->ramp = ini_int(sec, "ramp", 60);
+        a->skipUntil = ini_int(sec, "skip", 0);
         ini_str(sec, "label", a->label, sizeof(a->label));
         ini_str(sec, "sound", a->sound, MAX_PATH);
     }
@@ -440,6 +441,7 @@ void store_save(void) {
         ini_put_int(sec, "snooze", a->snooze);
         ini_put_int(sec, "gradual", a->gradual);
         ini_put_int(sec, "ramp", a->ramp);
+        ini_put_int(sec, "skip", a->skipUntil);
         ini_put_str(sec, "label", a->label);
         ini_put_str(sec, "sound", a->sound);
     }

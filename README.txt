@@ -18,6 +18,8 @@ What it does
 * Clock: analog and digital, with seconds, and up to 6 world clocks
 * Alarms: repeat days, names, snooze, your own WAV sound, and volume
   that rises gradually
+* Up before your alarm? Click "Dismiss next ring" on the Alarms page,
+  or right-click the tray icon and choose "Dismiss next alarm"
 * Bedtime reminder, with an optional matching wake-up alarm
 * Stopwatch with laps, and a timer
 * Themes: Classic, Dark, Terminal (green on black), Clock radio and Retro

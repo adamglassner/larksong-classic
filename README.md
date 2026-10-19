@@ -8,6 +8,7 @@ Download it from [Releases](https://github.com/adamglassner/daybreak-classic/rel
 
 - Analog and digital clock with seconds, plus up to 6 world clocks (with daylight-saving rules)
 - Alarms with repeat days, names, snooze, your own WAV sound, and gradually rising volume
+- Up before your alarm? Dismiss its next ring from the Alarms page or the tray icon
 - Bedtime reminder with an optional matching wake-up alarm
 - Stopwatch with laps, and a timer
 - Themes: Classic, Dark, Terminal, Clock radio (LED digits) and Retro (flip clock)
