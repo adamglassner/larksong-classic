@@ -33,4 +33,6 @@ Change the version in `VERSION`; every push to `main` builds and publishes a `cl
 
 ## Credits
 
+Created by Adam Glassner · The Glassnerds
+
 Default alarm sound: "Alarm Clock" by freesound_community, from Pixabay (Pixabay Content License).

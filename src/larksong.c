@@ -60,6 +60,8 @@ enum { TAB_CLOCK, TAB_ALARMS, TAB_STOP, TAB_TIMER, TAB_SETTINGS, TAB_COUNT };
 #define ID_ABOUT       371
 #define ID_BACKUP      372
 #define ID_RESTORE     373
+#define ID_CREDITS     374
+#define ID_CHANGES     375
 #define ID_SNOOZE      400
 #define ID_DISMISS     401
 #define ID_TRAY_OPEN   500
@@ -629,7 +631,7 @@ static void settings_refresh(void) {
     }
     if (g_updText[0]) SetWindowTextA(ctl(ID_UPDSTATUS), g_updText);
     os_name(os);
-    wsprintfA(buf, "Larksong Classic %s, running on %s.\r\nSettings are saved in larksong.ini. Alarms ring while Larksong is running (it waits in the notification area when closed).", VER_STRING, os);
+    wsprintfA(buf, "Larksong Classic %s by Adam Glassner, running on %s.\r\nSettings are saved in larksong.ini. Alarms ring while Larksong is running (it waits in the notification area when closed).", VER_STRING, os);
     SetWindowTextA(ctl(ID_ABOUT), buf);
     SetWindowTextA(ctl(ID_TSOUND), "");
     sound_label(buf, S.timerSound);
@@ -746,7 +748,9 @@ static void create_pages(void) {
     add_ctl(TAB_SETTINGS, "STATIC", "", SS_LEFT | SS_NOPREFIX, 10, 306, 460, 34, ID_UPDSTATUS);
     add_ctl(TAB_SETTINGS, "BUTTON", "&Back up alarms...", WS_TABSTOP | BS_PUSHBUTTON, 10, 350, 150, 28, ID_BACKUP);
     add_ctl(TAB_SETTINGS, "BUTTON", "R&estore alarms...", WS_TABSTOP | BS_PUSHBUTTON, 170, 350, 150, 28, ID_RESTORE);
-    add_ctl(TAB_SETTINGS, "STATIC", "", SS_LEFT | SS_NOPREFIX, 10, 392, 460, 110, ID_ABOUT);
+    add_ctl(TAB_SETTINGS, "BUTTON", "&Credits...", WS_TABSTOP | BS_PUSHBUTTON, 10, 388, 150, 28, ID_CREDITS);
+    add_ctl(TAB_SETTINGS, "BUTTON", "&What's new...", WS_TABSTOP | BS_PUSHBUTTON, 170, 388, 150, 28, ID_CHANGES);
+    add_ctl(TAB_SETTINGS, "STATIC", "", SS_LEFT | SS_NOPREFIX, 10, 426, 460, 76, ID_ABOUT);
 }
 
 /* ---------- the alarm engine ---------- */
@@ -1831,6 +1835,36 @@ static LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             break;
         case ID_BACKUP:
             backup_save(hwnd);
+            break;
+        case ID_CREDITS:
+            MessageBoxA(hwnd,
+                "LARKSONG CLASSIC " VER_STRING "\n"
+                "Created by Adam Glassner - The Glassnerds\n\n"
+                "SOUNDS\n"
+                "\"Alarm Clock\", the default alarm sound, by freesound_community\n"
+                "on Pixabay (Pixabay Content License)\n\n"
+                "WEATHER\n"
+                "Open-Meteo (open-meteo.com), CC BY 4.0\n\n"
+                "Thank you for using Larksong Classic.",
+                "Credits", MB_OK | MB_ICONINFORMATION);
+            break;
+        case ID_CHANGES:
+            MessageBoxA(hwnd,
+                "2.1.0\n"
+                "  - Credits and What's new, in Settings\n\n"
+                "2.0.1\n"
+                "  - New default alarm sound: a classic alarm-clock ring\n\n"
+                "2.0.0\n"
+                "  - Daybreak Classic is now Larksong Classic, with a new icon\n"
+                "  - Your alarms and settings come over automatically\n\n"
+                "1.2.0\n"
+                "  - Up early? Dismiss the next ring of an alarm\n\n"
+                "1.1.0\n"
+                "  - Retro theme, and back up and restore alarms\n\n"
+                "1.0.0\n"
+                "  - First version: alarms, stopwatch, timer, world clocks,\n"
+                "    bedtime reminder and weather, for Windows 95 to 11",
+                "What's new in Larksong Classic", MB_OK | MB_ICONINFORMATION);
             break;
         case ID_RESTORE:
             backup_restore(hwnd);
