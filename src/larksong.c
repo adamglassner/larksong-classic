@@ -1316,13 +1316,20 @@ static DWORD WINAPI UpdateThread(LPVOID arg) {
     int quiet = (int)(INT_PTR)arg;
     char best[24];
     best[0] = 0;
-    if (net_get("api.github.com", "/repos/adamglassner/larksong-classic/releases?per_page=30", g_upd, sizeof(g_upd)) <= 0) {
+    /* First the small latest.json each build publishes (not held to the GitHub API's hourly limit). */
+    if (net_get("raw.githubusercontent.com", "/adamglassner/larksong-classic/builds/latest.json", g_upd, sizeof(g_upd)) > 0 &&
+        (p = str_find(g_upd, "\"version\"")) != 0 && (p = json_after(p, "\"version\"")) != 0) {
+        copy_json_string(p, best, sizeof(best));
+    }
+    if (best[0]) {
+        /* found it */
+    } else if (net_get("api.github.com", "/repos/adamglassner/larksong-classic/releases?per_page=30", g_upd, sizeof(g_upd)) <= 0) {
         if (!quiet) str_copy(g_updText, "Couldn't check for updates. Check your internet connection.", sizeof(g_updText));
         PostMessageA(g_main, WM_UPDATE, (WPARAM)quiet, 0);
         return 0;
     }
-    p = g_upd;
-    while ((p = str_find(p, "\"tag_name\"")) != 0) {
+    p = best[0] ? 0 : g_upd;
+    while (p && (p = str_find(p, "\"tag_name\"")) != 0) {
         char tag[48];
         p = json_after(p, "\"tag_name\"");
         if (!p) break;
@@ -1884,6 +1891,8 @@ static LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             break;
         case ID_CHANGES:
             MessageBoxA(hwnd,
+                "2.2.1\n"
+                "  - Fixed: update checks could be refused after many in an hour\n\n"
                 "2.2.0\n"
                 "  - New themes: Larksong, Dawn and Dusk\n\n"
                 "2.1.0\n"

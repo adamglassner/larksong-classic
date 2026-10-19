@@ -51,6 +51,8 @@ jobs:
       - name: Save to builds branch
         run: |
           mkdir keep && cp build/Larksong.exe build/imports.txt keep/ && cd keep
+          # latest.json: what the app's update check reads (not held to the GitHub API's hourly limit)
+          printf '{"version":"%s","page":"https://github.com/%s/releases/tag/classic-v%s"}\n' "$V" "${{ github.repository }}" "$V" > latest.json
           git init -q -b builds
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
