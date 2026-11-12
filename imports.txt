@@ -1,0 +1,15 @@
+	DLL Name: ADVAPI32.dll
+	DLL Name: COMCTL32.dll
+	DLL Name: COMDLG32.DLL
+	DLL Name: GDI32.dll
+ 00031050	00031138 00000000 00000000 00031d80 00031330
+	DLL Name: KERNEL32.dll
+	DLL Name: SHELL32.dll
+	DLL Name: USER32.dll
+	DLL Name: WINMM.DLL
+ 000310a0	00000000 00000000 00000000 00000000 00000000
+MajorOSystemVersion	4
+MinorOSystemVersion	0
+MajorSubsystemVersion	4
+MinorSubsystemVersion	0
+Subsystem		00000002	(Windows GUI)
